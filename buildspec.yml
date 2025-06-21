@@ -1,0 +1,26 @@
+version: 0.2
+
+env:
+  parameter-store:
+    DOCKER_REGISTRY_USERNAME: /pythonapp/docker-credential/username
+    DOCKER_REGISTRY_PASSWORD: /pythonapp/docker-credential/password
+    DOCKER_REGISTRY_URL: /pythonapp/docker-credential/url
+
+phases:
+  install:
+    commands:
+      - echo Installing the runtime...
+      - apt-get update -y
+      - apt-get install -y python3 python3-pip
+
+  pre_build:
+    commands:
+      - echo Installing dependencies...
+      - pip install -r requirement.txt
+
+  build:
+    commands:
+      - echo Entering the build stage...
+      - echo "$DOCKER_REGISTRY_PASSWORD" | docker login -u "$DOCKER_REGISTRY_USERNAME" --password-stdin "$DOCKER_REGISTRY_URL"
+      - docker build -t "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/pythonapp:latest" .
+      - docker push "$DOCKER_REGISTRY_URL/$DOCKER_REGISTRY_USERNAME/pythonapp:latest"
